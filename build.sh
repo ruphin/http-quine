@@ -30,11 +30,14 @@ if grep -q -a -e '-->' -e '--!>' build/quine.ape; then
   exit 1
 fi
 
-# 3. Open an HTML comment at offset 8. The file starts with the 8 bytes
-#    MZqFpD=' (DOS magic + start of a shell string). Bytes 8..11 are DOS
-#    header fields Windows ignores and the shell never sees.
+# 3. Open an HTML comment at offset 9. The file starts with MZqFpD='
+#    followed by a newline: DOS magic, the start of a shell string, and the
+#    newline that bash and zsh look for before the first NUL byte to accept
+#    an ENOEXEC file as a script. That newline must stay at offset 8. Bytes
+#    9..12 are DOS header fields Windows ignores and the shell never sees.
 cp build/quine.ape "$OUT"
-printf '<!--' | dd of="$OUT" bs=1 seek=8 conv=notrunc 2>/dev/null
+[ "$(head -c 9 "$OUT" | tail -c 1 | xxd -p)" = 0a ] || { echo "error: unexpected APE header, no newline at offset 8" >&2; exit 1; }
+printf '<!--' | dd of="$OUT" bs=1 seek=9 conv=notrunc 2>/dev/null
 
 # 4. Close the comment and append the page.
 printf -- '-->' >> "$OUT"

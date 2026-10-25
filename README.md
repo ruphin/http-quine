@@ -29,9 +29,14 @@ its own bytes as `text/html`. Built on Justine Tunney's Cosmopolitan Libc
   only Windows gets a native header. On Unix the kernel rejects the file, the
   shell interprets it as a script (the header `MZqFpD='` opens a shell string,
   a heredoc swallows the binary), and the script execs an embedded ELF loader.
-- The browser renders `MZqFpD='` as text (hidden by CSS in `page.html`),
-  then everything up to the appended `-->` is one HTML comment. The binary
-  must therefore never contain `-->` or `--!>`; `build.sh` checks this.
+- The browser renders `MZqFpD='` as text, then everything up to the appended
+  `-->` is one HTML comment. A script at the top of `page.html` removes both
+  nodes before the page renders. The binary must never contain `-->` or
+  `--!>`; `build.sh` checks this.
+- The `<!--` goes at offset 9, not 8. bash and zsh only run an ENOEXEC file as
+  a script if a line with a lowercase letter ends before the first NUL byte,
+  so the newline after `MZqFpD='` has to survive. Overwriting it makes
+  `./quine.exe` fail with "exec format error" on every Unix shell.
 - Serve with `charset=utf-8` in the header, since a `<meta charset>` cannot
   be within the first 1024 bytes of the file.
 
