@@ -73,5 +73,6 @@ certificate.
 - **WSL**: with interop enabled, `./dist/quine.exe` is sent to Windows. Use
   `sh dist/quine.exe` or `cosmocc/bin/ape-x86_64.elf dist/quine.exe` instead.
 
-Verified so far: Linux (loader and shell paths) and native Windows serve the
-file byte-identical. macOS untested.
+Verified: Linux (loader and shell paths) and native Windows serve the file
+byte-identical, and the shell bootstrap runs it on Apple Silicon (M4, with
+the Xcode Command Line Tools installed). macOS x86-64 untested.
