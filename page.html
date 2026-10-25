@@ -8,16 +8,16 @@
 </script>
 <noscript><style>body{visibility:hidden}main{visibility:visible}</style></noscript>
 <style>
-body{margin:0;font:16px/1.55 system-ui,sans-serif;color:#222;background:#fff}
+body{margin:0;font:16px/1.6em system-ui,sans-serif;color:#222;background:#fff}
 main{max-width:42em;margin:3em auto;padding:0 1em}
 h1{font-size:1.8em;margin:0 0 .3em}
 h2{font-size:1.2em;margin:1.8em 0 .4em}
-p,li{margin:.4em 0}
+li{margin:.4em 0}
 code,pre{font:.92em/1.4 ui-monospace,Consolas,monospace;background:#f3f3f3;border-radius:3px}
 code{padding:.1em .3em}
 pre{padding:.6em .8em;overflow-x:auto}
 .sub{color:#666}
-a,a:visited{color:inherit}
+a,a:visited{color:inherit;font-weight:bold}
 @media (prefers-color-scheme:dark){
   body{color:#ddd;background:#141414}
   code,pre{background:#242424}
@@ -28,7 +28,6 @@ a,a:visited{color:inherit}
 
 <h1>HTTP quine</h1>
 <p class="sub">A web page that serves itself</p>
-<br>
 
 <p>This web page is also a binary program. It runs a tiny HTTP server on <code>127.0.0.1:8080</code>
 that serves itself. Thanks to <a href="https://github.com/jart/cosmopolitan">Cosmopolitan Libc</a>
@@ -48,7 +47,6 @@ this same page in your browser. Instructions on how to run the binary per platfo
 <p><strong>NOTE: Running random programs you download off the internet is usually a good idea. 
 I understand that you may not want to do this, in which case you'll just have to trust me (bro)
 that it works. ¯\_(ツ)_/¯</strong></p>
-<br>
 
 <p><strong>Windows:</strong></p>
 <p>double-click <code>quine.exe</code>, or run it from a
