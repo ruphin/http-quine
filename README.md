@@ -41,10 +41,10 @@ its own bytes as `text/html`. Built on Justine Tunney's Cosmopolitan Libc
 ./deploy.sh root@ruphin.net
 ```
 
-Installs `dist/quine.exe` to `/opt/quine` and runs it as the `quine` systemd
-service, bound to `127.0.0.1:8080`, as a dynamic unprivileged user with a
-read-only filesystem except `/var/lib/quine`, where the APE loader is cached.
-The unit starts it through `/bin/sh` because the kernel cannot exec an APE
+Installs `dist/quine.exe` and the standalone APE loader to `/opt/quine` and
+runs it as the `quine` systemd service, bound to `127.0.0.1:8080`, as a
+dynamic unprivileged user with a read-only filesystem. The unit execs the
+loader with the file as argument because the kernel cannot exec an APE
 directly. The installed file is never assimilated: it is the file that gets
 served, so it has to stay the untouched polyglot.
 

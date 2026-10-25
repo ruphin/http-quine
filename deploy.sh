@@ -9,14 +9,18 @@
 # The installed file must stay the untouched APE, because it is the file that
 # gets served and downloaded. Never run --assimilate on it: that rewrites the
 # header to ELF, which breaks the Windows side and the HTML comment opener.
+# Instead the unit starts it through the standalone APE loader, installed next
+# to it, so no shell bootstrap and no writable directory are needed.
 set -eu
 cd "$(dirname "$0")"
 TARGET=${1:?usage: $0 user@host}
 INSTALL_DIR=/opt/quine
 FILE=quine.exe
 PORT=8080
+LOADER=${COSMOCC:-./cosmocc}/bin/ape-x86_64.elf
 
 [ -f dist/$FILE ] || ./build.sh
+[ -f "$LOADER" ] || { echo "APE loader not found at $LOADER (run setup-toolchain.sh)"; exit 1; }
 
 unit() {
 cat <<EOF
@@ -26,15 +30,11 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-# The kernel cannot exec an APE directly. The shell bootstrap inside the file
-# extracts a small loader to \$TMPDIR/.ape-* on first start and execs it, so
-# TMPDIR points at the state directory, the only writable place under
-# ProtectSystem=strict.
-ExecStart=/bin/sh ${INSTALL_DIR}/${FILE}
+# The kernel cannot exec an APE directly, so the standalone APE loader maps
+# the ELF inside the file into memory. The process never writes to disk.
+ExecStart=${INSTALL_DIR}/ape ${INSTALL_DIR}/${FILE}
+WorkingDirectory=${INSTALL_DIR}
 DynamicUser=yes
-StateDirectory=quine
-WorkingDirectory=%S/quine
-Environment=TMPDIR=%S/quine
 ProtectSystem=strict
 ProtectHome=yes
 PrivateDevices=yes
@@ -57,11 +57,13 @@ mkdir -p ${INSTALL_DIR}
 EOF
 
 scp dist/$FILE "$TARGET:${INSTALL_DIR}/${FILE}.new"
+scp "$LOADER" "$TARGET:${INSTALL_DIR}/ape.new"
 unit | ssh "$TARGET" "cat > /etc/systemd/system/quine.service"
 ssh "$TARGET" sh -s <<EOF
 set -e
-chmod 755 ${INSTALL_DIR}/${FILE}.new
+chmod 755 ${INSTALL_DIR}/${FILE}.new ${INSTALL_DIR}/ape.new
 mv -f ${INSTALL_DIR}/${FILE}.new ${INSTALL_DIR}/${FILE}
+mv -f ${INSTALL_DIR}/ape.new ${INSTALL_DIR}/ape
 systemctl daemon-reload
 systemctl enable quine
 systemctl restart quine
