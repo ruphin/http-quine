@@ -35,6 +35,27 @@ its own bytes as `text/html`. Built on Justine Tunney's Cosmopolitan Libc
 - Serve with `charset=utf-8` in the header, since a `<meta charset>` cannot
   be within the first 1024 bytes of the file.
 
+## Deploying (quine.ruphin.net)
+
+```
+./deploy.sh root@ruphin.net
+```
+
+Installs `dist/quine.exe` to `/opt/quine` and runs it as the `quine` systemd
+service, bound to `127.0.0.1:8080`, as a dynamic unprivileged user with a
+read-only filesystem except `/var/lib/quine`, where the APE loader is cached.
+The unit starts it through `/bin/sh` because the kernel cannot exec an APE
+directly. The installed file is never assimilated: it is the file that gets
+served, so it has to stay the untouched polyglot.
+
+The public side is redbean in the ruphin.net repo: `src/.lua/quine.lua`
+fetches `http://127.0.0.1:8080/` on every request for `quine.ruphin.net` and
+passes the body through with a `Via: 1.1 redbean` header. Nothing is cached,
+so every response still comes from the quine process. Steps on that side:
+add a DNS record for `quine.ruphin.net`, `./build.sh pack`, `./build.sh deploy
+root@ruphin.net`, then `./build.sh cert root@ruphin.net` to expand the
+certificate.
+
 ## Platform notes
 
 - **Windows**: native. Keep the `.exe` extension.
