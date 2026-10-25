@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>HTTP quine</title>
+<script>
+// The file starts with the APE header text "MZqFpD='" and then a 230 KB HTML
+// comment hiding the binary. The parser puts both into <body> ahead of this
+// page, so drop every leading text and comment node before anything renders.
+(function(){var b=document.body,n;while((n=b.firstChild)&&(n.nodeType===3||n.nodeType===8))b.removeChild(n);})();
+</script>
+<noscript><style>body{visibility:hidden}main{visibility:visible}</style></noscript>
+<style>
+body{margin:0;font:16px/1.55 system-ui,sans-serif;color:#222;background:#fff}
+main{max-width:42em;margin:3em auto;padding:0 1em}
+h1{font-size:1.8em;margin:0 0 .3em}
+h2{font-size:1.2em;margin:1.8em 0 .4em}
+p,li{margin:.4em 0}
+code,pre{font:.92em/1.4 ui-monospace,Consolas,monospace;background:#f3f3f3;border-radius:3px}
+code{padding:.1em .3em}
+pre{padding:.6em .8em;overflow-x:auto}
+.sub{color:#666}
+a,a:visited{color:inherit}
+@media (prefers-color-scheme:dark){
+  body{color:#ddd;background:#141414}
+  code,pre{background:#242424}
+  .sub{color:#999}
+}
+</style>
+</head><body><main>
+
+<h1>HTTP quine</h1>
+<p class="sub">A web page that serves itself</p>
+<br>
+
+<p>This web page is also a binary program. It runs a tiny HTTP server on <code>127.0.0.1:8080</code>
+that serves itself. Thanks to <a href="https://github.com/jart/cosmopolitan">Cosmopolitan Libc</a>
+it is a Windows program, a Linux and macOS program, and a shell script, all at once.</p>
+<p>This is an old idea of mine, but I never had the time and patience to learn the necessary C.
+Now I can just ask Claude to do the C stuff for me...</p>
+
+<h2>Download</h2>
+<p><a href="/" download="quine.exe">Download quine.exe</a> or use <em>Save page as</em>,
+it is exactly the same.</p>
+
+<h2>Run it</h2>
+
+<p>Run the binary like you normally would, and if you open http://127.0.0.1:8080/ you should see
+this same page in your browser. Instructions on how to run the binary per platform are listed below.</p>
+
+<p><strong>NOTE: Running random programs you download off the internet is usually a good idea. 
+I understand that you may not want to do this, in which case you'll just have to trust me (bro)
+that it works. ¯\_(ツ)_/¯</strong></p>
+<br>
+
+<p><strong>Windows:</strong></p>
+<p>double-click <code>quine.exe</code>, or run it from a
+terminal. It needs the <code>.exe</code> extension to work</p>
+<p><strong>Linux and BSD:</strong></p>
+<pre>chmod +x quine.exe
+./quine.exe</pre>
+<p><strong>macOS:</strong></p>
+<p>Requires Xcode Command Line Tools</p>
+<pre>xattr -d com.apple.quarantine quine.exe
+chmod +x quine.exe
+./quine.exe</pre>
+
+<h2>How it works</h2>
+<p>The heavy lifting is done by <a href="https://github.com/jart/cosmopolitan">Cosmopolitan Libc</a>,
+which makes it work on most machines.</p>
+<ul>
+<li>Windows needs the file to start with <code>MZ</code>. The first bytes are
+<code>MZqFpD='</code>, which is a valid DOS header and also the start of a
+shell string.</li>
+<li>Linux and macOS refuse to execute the file directly, so the shell runs it as
+a script. The script locates an embedded loader and maps the real ELF program
+into memory. The file on disk is never modified.</li>
+<li>Most of the binary stuff is wrapped in a big HTML comment, with some HTML content attached at the end</li>
+<li>The server itself is <a href="https://github.com/ruphin/http-quine/blob/main/quine.c">about 25 lines of C</a>: accept, read once, write
+<code>HTTP/1.0 200 OK</code> and a content type, write the file, close. It does
+not parse requests, so every path returns this page.</li>
+</ul>
+
+
+<h2>Notes</h2>
+<ul>
+<li><strong>Apple Silicon:</strong> macOS requires signed native code, so the
+loader is compiled on first run. You need the Xcode Command Line Tools
+(<code>xcode-select --install</code>).</li>
+<li><strong>Shells:</strong> the Unix bootstrap needs dash, bash, or zsh 5.9 or
+newer. Older zsh fails with "exec format error".</li>
+<li><strong>Linux/Wine:</strong> Linux systems that route <code>MZ</code> files to
+Wine will try to run it under Wine. Running it as <code>sh quine.exe</code>
+avoids that.</li>
+<li><strong>WSL:</strong> with Windows interop enabled, <code>./quine.exe</code> is handed to Windows. 
+Run <code>sh quine.exe</code> instead</li>
+<li><strong>Port:</strong> fixed at 8080 on loopback only. If the port is taken, the
+server exits silently.</li>
+<li><strong>Security:</strong> a file with a shell script in its DOS header looks
+pretty suspicious, and some browsers and antivirus tools will flag it.</li>
+<li><strong>Not a real HTTP server:</strong> it cuts every possible corner to just serve this content.</li>
+</ul>
+
+</main></body></html>

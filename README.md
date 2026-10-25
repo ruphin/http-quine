@@ -1,0 +1,51 @@
+# HTTP quine
+
+One file that is a Windows executable, a Linux/macOS executable, and an HTML
+page. Run it and it starts an HTTP server on `127.0.0.1:8080` that serves
+its own bytes as `text/html`. Built on Justine Tunney's Cosmopolitan Libc
+(Actually Portable Executable format).
+
+```
+./setup-toolchain.sh   # once: downloads cosmocc 4.0.2 into ./cosmocc (~420 MB)
+./build.sh             # -> dist/quine.exe (~230 KB)
+./test.sh              # runs it, curls it, checks body == file
+```
+
+## Files
+
+- `quine.c` – the whole server, 25 lines of POSIX C. Reads its own file once
+  via `GetProgramExecutableName()`, then loops: accept, one `read()` to drain
+  the request, write `HTTP/1.0 200 OK` + `Content-Type`, write the file, close.
+  No parsing, no threads, no Content-Length (HTTP/1.0 close delimits the body).
+- `page.html` – the visible page, appended to the binary by `build.sh`.
+- `build.sh` – compile with `cosmocc -mtiny -Os`, write `<!--` over bytes 8..11
+  of the DOS header, append `-->` + `page.html`, then verify with `pecheck`
+  and an HTML parse. `ARCH=x86_64 ./build.sh` gives a smaller x86-only file
+  that does not run natively on Apple Silicon.
+
+## How the polyglot holds together
+
+- Offset 0 must be `MZ` for Windows; ELF and Mach-O also demand offset 0, so
+  only Windows gets a native header. On Unix the kernel rejects the file, the
+  shell interprets it as a script (the header `MZqFpD='` opens a shell string,
+  a heredoc swallows the binary), and the script execs an embedded ELF loader.
+- The browser renders `MZqFpD='` as text (hidden by CSS in `page.html`),
+  then everything up to the appended `-->` is one HTML comment. The binary
+  must therefore never contain `-->` or `--!>`; `build.sh` checks this.
+- Serve with `charset=utf-8` in the header, since a `<meta charset>` cannot
+  be within the first 1024 bytes of the file.
+
+## Platform notes
+
+- **Windows**: native. Keep the `.exe` extension.
+- **Linux / BSD**: needs dash, bash, or zsh 5.9+. First run extracts a 4 KB
+  loader to `$TMPDIR/.ape-1.10` (or `$HOME`). The file itself is not modified.
+- **macOS x86-64**: works as is. **Apple Silicon**: the loader must be compiled
+  locally because of code signing, so Xcode Command Line Tools are required
+  (`xcode-select --install`). Downloaded files also need the quarantine
+  attribute cleared before they will run.
+- **WSL**: with interop enabled, `./dist/quine.exe` is sent to Windows. Use
+  `sh dist/quine.exe` or `cosmocc/bin/ape-x86_64.elf dist/quine.exe` instead.
+
+Verified so far: Linux (loader and shell paths) and native Windows serve the
+file byte-identical. macOS untested.
