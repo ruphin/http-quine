@@ -33,6 +33,10 @@ its own bytes as `text/html`. Built on Justine Tunney's Cosmopolitan Libc
   `-->` is one HTML comment. A script at the top of `page.html` removes both
   nodes before the page renders. The binary must never contain `-->` or
   `--!>`; `build.sh` checks this.
+- That leading text makes the parser open `<body>` before `page.html` starts,
+  so `page.html` has no doctype, `<html>`, `<head>` or `<body>` tags (they
+  would be ignored). The same script sets `lang`, the title and the viewport
+  meta instead. The page always renders in quirks mode.
 - The `<!--` goes at offset 9, not 8. bash and zsh only run an ENOEXEC file as
   a script if a line with a lowercase letter ends before the first NUL byte,
   so the newline after `MZqFpD='` has to survive. Overwriting it makes

@@ -1,10 +1,16 @@
-<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><title>HTTP quine</title>
 <script>
 // The file starts with the APE header text "MZqFpD='" and then a 230 KB HTML
-// comment hiding the binary. The parser puts both into <body> ahead of this
-// page, so drop every leading text and comment node before anything renders.
-(function(){var b=document.body,n;while((n=b.firstChild)&&(n.nodeType===3||n.nodeType===8))b.removeChild(n);})();
+// comment hiding the binary. That text makes the parser open <body> before
+// this page starts, so <!DOCTYPE>, <html>, <head> and <body> tags here would
+// be ignored. Instead, drop the leading text and comment nodes and set up the
+// head from here, before anything renders.
+{
+  const b = document.body;
+  while (b.firstChild && [Node.TEXT_NODE, Node.COMMENT_NODE].includes(b.firstChild.nodeType)) b.firstChild.remove();
+  document.documentElement.lang = 'en';
+  document.title = 'HTTP quine';
+  document.head.append(Object.assign(document.createElement('meta'), { name: 'viewport', content: 'width=device-width, initial-scale=1' }));
+}
 </script>
 <noscript><style>body{visibility:hidden}main{visibility:visible}</style></noscript>
 <style>
@@ -14,7 +20,7 @@ h1{font-size:1.8em;margin:0 0 .3em}
 h2{font-size:1.2em;margin:1.8em 0 .4em}
 li{margin:.4em 0}
 code,pre{font:.92em/1.4 ui-monospace,Consolas,monospace;background:#f3f3f3;border-radius:3px}
-code{padding:.1em .3em}
+code{padding:.1em .3em;overflow-wrap:anywhere}
 pre{padding:.6em .8em;overflow-x:auto}
 .sub{color:#666}
 a,a:visited{color:inherit;font-weight:bold}
@@ -24,7 +30,7 @@ a,a:visited{color:inherit;font-weight:bold}
   .sub{color:#999}
 }
 </style>
-</head><body><main>
+<main>
 
 <h1>HTTP quine</h1>
 <p class="sub">A web page that serves itself</p>
@@ -96,4 +102,4 @@ pretty suspicious, and some browsers and antivirus tools will flag it.</li>
 <li><strong>Not a real HTTP server:</strong> it cuts every possible corner to just serve this content.</li>
 </ul>
 
-</main></body></html>
+</main>
