@@ -1,9 +1,4 @@
 <script>
-// The file starts with the APE header text "MZqFpD='" and then a 230 KB HTML
-// comment hiding the binary. That text makes the parser open <body> before
-// this page starts, so <!DOCTYPE>, <html>, <head> and <body> tags here would
-// be ignored. Instead, drop the leading text and comment nodes and set up the
-// head from here, before anything renders.
 {
   const b = document.body;
   while (b.firstChild && [Node.TEXT_NODE, Node.COMMENT_NODE].includes(b.firstChild.nodeType)) b.firstChild.remove();
@@ -47,10 +42,11 @@ it is exactly the same.</p>
 
 <h2>Run it</h2>
 
-<p>Run the binary like you normally would, and if you open http://127.0.0.1:8080/ you should see
-this same page in your browser. Instructions on how to run the binary per platform are listed below.</p>
+<p>Run the binary like you normally would, which should start a web server at http://127.0.0.1:8080/
+that you can visit in your browser. It should serve the same page you are looking at right now. 
+Plaform specific instructions on how to run the binary are listed below.</p>
 
-<p><strong>NOTE: Running random programs you download off the internet is usually a good idea. 
+<p><strong>NOTE: Running random programs you download off the internet is usually not a good idea. 
 I understand that you may not want to do this, in which case you'll just have to trust me (bro)
 that it works. ¯\_(ツ)_/¯</strong></p>
 
@@ -70,23 +66,24 @@ chmod +x quine.exe
 <p>The heavy lifting is done by <a href="https://github.com/jart/cosmopolitan">Cosmopolitan Libc</a>,
 which makes it work on most machines.</p>
 <ul>
-<li>Windows needs the file to start with <code>MZ</code>. The first bytes are
-<code>MZqFpD='</code>, which is a valid DOS header and also the start of a
+<li>Windows sees <code>MZ</code> at the start of the file, which makes it a valid executable. 
+The first bytes are <code>MZqFpD='</code>, which is a valid DOS header and also the start of a
 shell string.</li>
 <li>Linux and macOS refuse to execute the file directly, so the shell runs it as
 a script. The script locates an embedded loader and maps the real ELF program
 into memory. The file on disk is never modified.</li>
-<li>Most of the binary stuff is wrapped in a big HTML comment, with some HTML content attached at the end</li>
-<li>The server itself is <a href="https://github.com/ruphin/http-quine/blob/main/quine.c">about 25 lines of C</a>: accept, read once, write
-<code>HTTP/1.0 200 OK</code> and a content type, write the file, close. It does
-not parse requests, so every path returns this page.</li>
+<li>Most of the binary stuff is wrapped in a big HTML comment, with some HTML content attached at the end, which
+is the page you are looking at right now.</li>
+<li>The server itself is <a href="https://github.com/ruphin/http-quine/blob/main/quine.c">about 25 lines of C</a>:
+accept request, read and ignore the content, write <code>HTTP/1.0 200 OK</code> and a content type, write the file,
+close connection.</li>
 </ul>
 
 
 <h2>Notes</h2>
 <ul>
 <li><strong>Apple Silicon:</strong> macOS requires signed native code, so the
-loader is compiled on first run. You need the Xcode Command Line Tools
+loader is compiled on first run. You need Xcode Command Line Tools for this
 (<code>xcode-select --install</code>).</li>
 <li><strong>Shells:</strong> the Unix bootstrap needs dash, bash, or zsh 5.9 or
 newer. Older zsh fails with "exec format error".</li>
@@ -94,7 +91,7 @@ newer. Older zsh fails with "exec format error".</li>
 Wine will try to run it under Wine. Running it as <code>sh quine.exe</code>
 avoids that.</li>
 <li><strong>WSL:</strong> with Windows interop enabled, <code>./quine.exe</code> is handed to Windows. 
-Run <code>sh quine.exe</code> instead</li>
+Run <code>sh quine.exe</code> instead.</li>
 <li><strong>Port:</strong> fixed at 8080 on loopback only. If the port is taken, the
 server exits silently.</li>
 <li><strong>Security:</strong> a file with a shell script in its DOS header looks
